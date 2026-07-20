@@ -5,20 +5,20 @@ import joblib
 import os
 
 
-# ===============================
-# PAGE CONFIGURATION
-# ===============================
+# ==============================
+# PAGE CONFIG
+# ==============================
 
 st.set_page_config(
-    page_title="Customer Churn Prediction",
+    page_title="Customer Churn Prediction & Retention Analysis",
     page_icon="📊",
     layout="wide"
 )
 
 
-# ===============================
-# FILE PATHS
-# ===============================
+# ==============================
+# PATHS
+# ==============================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,9 +42,9 @@ FEATURE_PATH = os.path.join(
 
 
 
-# ===============================
-# LOAD FILES
-# ===============================
+# ==============================
+# LOAD MODEL
+# ==============================
 
 @st.cache_resource
 def load_files():
@@ -65,72 +65,74 @@ try:
 
 except Exception as e:
 
-    st.error("Model loading failed")
+    st.error("❌ Model loading failed")
     st.write(e)
     st.stop()
 
 
 
-# ===============================
+# ==============================
 # TITLE
-# ===============================
+# ==============================
 
-st.title("📊 Customer Churn Prediction System")
+st.title("📊 Customer Churn Prediction & Retention Analysis")
+
 
 st.write(
 """
-Predict whether a telecom customer is likely to churn.
+This AI system predicts customer churn risk and provides
+business recommendations to retain customers.
 """
 )
 
 
 
-# ===============================
-# INPUT SECTION
-# ===============================
-
-st.sidebar.header("Customer Details")
+# ==============================
+# INPUTS
+# ==============================
 
 
+st.sidebar.header("Customer Information")
 
-Gender = st.sidebar.selectbox(
+
+gender = st.sidebar.selectbox(
     "Gender",
     ["Male","Female"]
 )
 
 
-SeniorCitizen = st.sidebar.selectbox(
+senior = st.sidebar.selectbox(
     "Senior Citizen",
     [0,1]
 )
 
 
-Partner = st.sidebar.selectbox(
+partner = st.sidebar.selectbox(
     "Partner",
     ["Yes","No"]
 )
 
 
-Dependents = st.sidebar.selectbox(
+dependents = st.sidebar.selectbox(
     "Dependents",
     ["Yes","No"]
 )
 
 
-Tenure = st.sidebar.number_input(
+tenure = st.sidebar.number_input(
     "Tenure Months",
     min_value=0,
     value=12
 )
 
 
-PhoneService = st.sidebar.selectbox(
+phone = st.sidebar.selectbox(
     "Phone Service",
     ["Yes","No"]
 )
 
 
-MultipleLines = st.sidebar.selectbox(
+multiple_lines = st.sidebar.selectbox(
     "Multiple Lines",
     [
         "Yes",
@@ -140,7 +142,7 @@ MultipleLines = st.sidebar.selectbox(
 )
 
 
-InternetService = st.sidebar.selectbox(
+internet = st.sidebar.selectbox(
     "Internet Service",
     [
         "DSL",
@@ -150,7 +152,7 @@ InternetService = st.sidebar.selectbox(
 )
 
 
-OnlineSecurity = st.sidebar.selectbox(
+security = st.sidebar.selectbox(
     "Online Security",
     [
         "Yes",
@@ -160,7 +162,7 @@ OnlineSecurity = st.sidebar.selectbox(
 )
 
 
-OnlineBackup = st.sidebar.selectbox(
+backup = st.sidebar.selectbox(
     "Online Backup",
     [
         "Yes",
@@ -170,7 +172,7 @@ OnlineBackup = st.sidebar.selectbox(
 )
 
 
-DeviceProtection = st.sidebar.selectbox(
+device = st.sidebar.selectbox(
     "Device Protection",
     [
         "Yes",
@@ -180,7 +182,7 @@ DeviceProtection = st.sidebar.selectbox(
 )
 
 
-TechSupport = st.sidebar.selectbox(
+support = st.sidebar.selectbox(
     "Tech Support",
     [
         "Yes",
@@ -190,7 +192,7 @@ TechSupport = st.sidebar.selectbox(
 )
 
 
-StreamingTV = st.sidebar.selectbox(
+tv = st.sidebar.selectbox(
     "Streaming TV",
     [
         "Yes",
@@ -200,7 +202,7 @@ StreamingTV = st.sidebar.selectbox(
 )
 
 
-StreamingMovies = st.sidebar.selectbox(
+movies = st.sidebar.selectbox(
     "Streaming Movies",
     [
         "Yes",
@@ -210,7 +212,7 @@ StreamingMovies = st.sidebar.selectbox(
 )
 
 
-Contract = st.sidebar.selectbox(
+contract = st.sidebar.selectbox(
     "Contract",
     [
         "Month-to-month",
@@ -220,7 +222,7 @@ Contract = st.sidebar.selectbox(
 )
 
 
-PaperlessBilling = st.sidebar.selectbox(
+paperless = st.sidebar.selectbox(
     "Paperless Billing",
     [
         "Yes",
@@ -229,7 +231,7 @@ PaperlessBilling = st.sidebar.selectbox(
 )
 
 
-PaymentMethod = st.sidebar.selectbox(
+payment = st.sidebar.selectbox(
     "Payment Method",
     [
         "Electronic check",
@@ -240,14 +242,14 @@ PaymentMethod = st.sidebar.selectbox(
 )
 
 
-MonthlyCharges = st.sidebar.number_input(
+monthly = st.sidebar.number_input(
     "Monthly Charges",
     min_value=0.0,
     value=70.0
 )
 
 
-TotalCharges = st.sidebar.number_input(
+total = st.sidebar.number_input(
     "Total Charges",
     min_value=0.0,
     value=1000.0
@@ -255,114 +257,206 @@ TotalCharges = st.sidebar.number_input(
 
 
 
-# ===============================
+
+# ==============================
 # PREDICTION
-# ===============================
+# ==============================
 
 
-if st.button("Predict Churn"):
+if st.button("🔍 Predict Churn"):
 
 
-    data = {
+    customer = pd.DataFrame({
 
-        "Gender":Gender,
-        "Senior Citizen":SeniorCitizen,
-        "Partner":Partner,
-        "Dependents":Dependents,
-        "Tenure Months":Tenure,
-        "Phone Service":PhoneService,
-        "Multiple Lines":MultipleLines,
-        "Internet Service":InternetService,
-        "Online Security":OnlineSecurity,
-        "Online Backup":OnlineBackup,
-        "Device Protection":DeviceProtection,
-        "Tech Support":TechSupport,
-        "Streaming TV":StreamingTV,
-        "Streaming Movies":StreamingMovies,
-        "Contract":Contract,
-        "Paperless Billing":PaperlessBilling,
-        "Payment Method":PaymentMethod,
-        "Monthly Charges":MonthlyCharges,
-        "Total Charges":TotalCharges
+        "Gender":[gender],
+        "Senior Citizen":[senior],
+        "Partner":[partner],
+        "Dependents":[dependents],
+        "Tenure Months":[tenure],
+        "Phone Service":[phone],
+        "Multiple Lines":[multiple_lines],
+        "Internet Service":[internet],
+        "Online Security":[security],
+        "Online Backup":[backup],
+        "Device Protection":[device],
+        "Tech Support":[support],
+        "Streaming TV":[tv],
+        "Streaming Movies":[movies],
+        "Contract":[contract],
+        "Paperless Billing":[paperless],
+        "Payment Method":[payment],
+        "Monthly Charges":[monthly],
+        "Total Charges":[total]
 
-    }
+    })
 
-
-    input_df = pd.DataFrame([data])
 
 
     # Encoding
 
-    input_encoded = pd.get_dummies(input_df)
+    customer_encoded = pd.get_dummies(customer)
 
 
 
-    # Match training columns
+    # Match training features
 
-    input_encoded = input_encoded.reindex(
+    customer_encoded = customer_encoded.reindex(
         columns=feature_columns,
         fill_value=0
     )
 
 
 
-    # ===============================
-    # SCALER HANDLING
-    # ===============================
+    # Scaling fix
 
     if hasattr(scaler,"transform"):
 
-        final_input = scaler.transform(
-            input_encoded
+        final_data = scaler.transform(
+            customer_encoded
         )
 
     else:
 
-        final_input = input_encoded.values
+        final_data = customer_encoded.values
 
 
-
-    # Prediction
 
     prediction = model.predict(
-        final_input
+        final_data
     )
 
 
-    probability = None
+    probability = 0
 
 
     if hasattr(model,"predict_proba"):
 
         probability = model.predict_proba(
-            final_input
+            final_data
         )[0][1]
 
 
 
-    st.subheader("Prediction")
+    # ==============================
+    # RESULTS
+    # ==============================
 
+
+    st.subheader("Prediction Result")
 
 
     if prediction[0] == 1:
 
-        st.error("⚠️ Customer is likely to churn")
 
-        if probability:
+        st.error(
+            "⚠️ Customer is likely to churn"
+        )
 
-            st.write(
-                f"Churn Probability: {probability:.2%}"
+
+        st.metric(
+            "Churn Probability",
+            f"{probability:.2%}"
+        )
+
+
+        st.subheader(
+            "💡 Retention Recommendations"
+        )
+
+
+        recommendations=[]
+
+
+
+        if contract=="Month-to-month":
+
+            recommendations.append(
+                "Offer yearly contract discounts to increase customer commitment."
             )
 
 
+        if tenure < 12:
+
+            recommendations.append(
+                "Provide onboarding support and first-year loyalty benefits."
+            )
+
+
+        if monthly > 70:
+
+            recommendations.append(
+                "Provide personalized pricing offers because charges are high."
+            )
+
+
+        if support=="No":
+
+            recommendations.append(
+                "Offer free technical support packages."
+            )
+
+
+        if security=="No":
+
+            recommendations.append(
+                "Promote online security services."
+            )
+
+
+        if payment=="Electronic check":
+
+            recommendations.append(
+                "Encourage automatic payment methods with incentives."
+            )
+
+
+        if internet=="Fiber optic":
+
+            recommendations.append(
+                "Check service satisfaction and network issues."
+            )
+
+
+
+        if len(recommendations)==0:
+
+            recommendations.append(
+                "Provide loyalty rewards and customer engagement offers."
+            )
+
+
+        for item in recommendations:
+
+            st.write(
+                "🔹 "+item
+            )
+
+
+
     else:
+
 
         st.success(
             "✅ Customer is likely to stay"
         )
 
-        if probability:
 
-            st.write(
-                f"Churn Probability: {probability:.2%}"
-            )
+        st.metric(
+            "Churn Probability",
+            f"{probability:.2%}"
+        )
+
+
+        st.subheader(
+            "💡 Customer Engagement Suggestions"
+        )
+
+
+        st.write(
+        """
+        🔹 Continue loyalty programs  
+        🔹 Offer premium upgrades  
+        🔹 Maintain customer satisfaction  
+        🔹 Encourage referrals
+        """
+        )

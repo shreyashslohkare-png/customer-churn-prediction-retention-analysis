@@ -4,21 +4,20 @@ import joblib
 import os
 
 
-# ===============================
+# =====================================
 # PAGE CONFIG
-# ===============================
+# =====================================
 
 st.set_page_config(
-    page_title="Customer Churn Prediction",
+    page_title="Customer Churn Prediction & Retention Analysis",
     page_icon="📊",
     layout="wide"
 )
 
 
-
-# ===============================
+# =====================================
 # LOAD MODEL
-# ===============================
+# =====================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -33,9 +32,7 @@ MODEL_PATH = os.path.join(
 @st.cache_resource
 def load_model():
 
-    model = joblib.load(MODEL_PATH)
-
-    return model
+    return joblib.load(MODEL_PATH)
 
 
 
@@ -53,10 +50,9 @@ except Exception as e:
 
 
 
-# ===============================
-# TITLE
-# ===============================
-
+# =====================================
+# HEADER
+# =====================================
 
 st.title(
     "📊 Customer Churn Prediction & Retention Analysis"
@@ -65,20 +61,20 @@ st.title(
 
 st.write(
 """
-Predict customer churn probability and generate
-personalized retention strategies.
+An AI-based customer analytics system that predicts churn risk
+and generates personalized retention strategies.
 """
 )
 
 
 
-# ===============================
-# INPUTS
-# ===============================
+# =====================================
+# CUSTOMER INPUT
+# =====================================
 
 
 st.sidebar.header(
-    "Customer Details"
+    "Customer Information"
 )
 
 
@@ -246,18 +242,21 @@ data["Total Charges"] = st.sidebar.number_input(
 
 
 
-# ===============================
+# =====================================
 # PREDICTION
-# ===============================
+# =====================================
 
 
-if st.button("Predict Churn"):
+if st.button("🔍 Analyze Customer"):
 
 
-    input_df = pd.DataFrame([data])
+    input_df = pd.DataFrame(
+        [data]
+    )
 
 
-    # same encoding style
+    # SAME PREPROCESSING AS TRAINING
+
     input_encoded = pd.get_dummies(
         input_df,
         drop_first=True,
@@ -265,14 +264,16 @@ if st.button("Predict Churn"):
     )
 
 
-    # use model expected columns directly
-    expected_columns = model.feature_names_in_
+    # MATCH MODEL FEATURES
+
+    expected_features = model.feature_names_in_
 
 
     input_encoded = input_encoded.reindex(
-        columns=expected_columns,
+        columns=expected_features,
         fill_value=0
     )
+
 
 
     prediction = model.predict(
@@ -290,11 +291,16 @@ if st.button("Predict Churn"):
 
 
 
+    # =====================================
+    # CHURN CUSTOMER
+    # =====================================
+
+
     if prediction[0] == 1:
 
 
         st.error(
-            "⚠️ Customer is likely to churn"
+            "⚠️ CUSTOMER IS LIKELY TO CHURN"
         )
 
 
@@ -305,60 +311,215 @@ if st.button("Predict Churn"):
 
 
 
+        # -------------------------------
+        # EXPLANATION
+        # -------------------------------
+
         st.subheader(
-            "💊 Retention Prescription"
+            "🧠 Why did the model predict churn?"
         )
 
 
-        recommendations=[]
+        risks=[]
+
 
 
         if data["Contract"]=="Month-to-month":
 
-            recommendations.append(
-            "Offer annual contract upgrade with loyalty discount."
+            risks.append(
+            """
+            **Contract Risk**
+
+            Month-to-month customers have higher switching probability
+            because they have low commitment.
+            """
             )
 
 
         if data["Monthly Charges"]>80:
 
-            recommendations.append(
-            "Provide personalized pricing plan."
+            risks.append(
+            """
+            **Pricing Risk**
+
+            Customer has high monthly charges which may create dissatisfaction.
+            """
             )
 
-
-        if data["Tech Support"]=="No":
-
-            recommendations.append(
-            "Provide technical support benefits."
-            )
 
 
         if data["Tenure Months"]<12:
 
-            recommendations.append(
-            "Run customer onboarding campaign."
+            risks.append(
+            """
+            **Customer Loyalty Risk**
+
+            Customer is new and has not developed strong loyalty.
+            """
             )
 
 
-        if len(recommendations)==0:
 
-            recommendations.append(
-            "Start customer engagement campaign."
+        if data["Tech Support"]=="No":
+
+            risks.append(
+            """
+            **Service Risk**
+
+            Customer does not have technical support,
+            increasing service frustration.
+            """
             )
 
 
-        for r in recommendations:
+        if data["Payment Method"]=="Electronic check":
 
-            st.info(r)
+            risks.append(
+            """
+            **Payment Risk**
+
+            Electronic check payment method is associated
+            with higher churn probability.
+            """
+            )
 
 
+
+        if len(risks)==0:
+
+            risks.append(
+            """
+            Model detected a pattern similar to previously churned customers.
+            """
+            )
+
+
+
+        for r in risks:
+
+            st.warning(r)
+
+
+
+        # -------------------------------
+        # RETENTION PRESCRIPTION
+        # -------------------------------
+
+
+        st.subheader(
+            "💊 Personalized Retention Prescription"
+        )
+
+
+        actions=[]
+
+
+
+        if data["Contract"]=="Month-to-month":
+
+            actions.append(
+            "Offer yearly contract upgrade with loyalty discount."
+            )
+
+
+
+        if data["Monthly Charges"]>80:
+
+            actions.append(
+            "Provide customized pricing package."
+            )
+
+
+
+        if data["Tech Support"]=="No":
+
+            actions.append(
+            "Provide free technical support trial."
+            )
+
+
+
+        if data["Tenure Months"]<12:
+
+            actions.append(
+            "Start onboarding and customer engagement campaign."
+            )
+
+
+
+        if data["Payment Method"]=="Electronic check":
+
+            actions.append(
+            "Encourage automatic payment methods with incentives."
+            )
+
+
+
+        actions.append(
+        "Add customer to loyalty program and satisfaction monitoring."
+        )
+
+
+
+        for action in actions:
+
+            st.info(action)
+
+
+
+        # -------------------------------
+        # PRIORITY
+        # -------------------------------
+
+
+        st.subheader(
+            "🚨 Retention Priority"
+        )
+
+
+        if probability >=0.75:
+
+            st.error(
+            """
+            HIGH PRIORITY CUSTOMER
+
+            Contact customer immediately with a personalized retention offer.
+            """
+            )
+
+
+        elif probability >=0.5:
+
+            st.warning(
+            """
+            MEDIUM PRIORITY CUSTOMER
+
+            Start targeted retention campaign.
+            """
+            )
+
+
+        else:
+
+            st.success(
+            """
+            LOW PRIORITY CUSTOMER
+
+            Continue normal engagement.
+            """
+            )
+
+
+
+    # =====================================
+    # SAFE CUSTOMER
+    # =====================================
 
     else:
 
 
         st.success(
-            "✅ Customer is unlikely to churn"
+            "✅ CUSTOMER IS UNLIKELY TO CHURN"
         )
 
 
@@ -368,20 +529,28 @@ if st.button("Predict Churn"):
         )
 
 
+        st.subheader(
+            "💡 Customer Engagement Strategy"
+        )
+
+
         st.write(
         """
-        Retention Strategy:
-
         ✅ Maintain service quality
 
-        ✅ Provide loyalty benefits
+        ✅ Provide loyalty rewards
 
         ✅ Encourage upgrades
+
+        ✅ Collect feedback regularly
         """
         )
 
 
 
+st.divider()
+
+
 st.caption(
-"Customer Churn Prediction & Retention Analysis"
+"Customer Churn Prediction & Retention Analysis | Machine Learning Project"
 )

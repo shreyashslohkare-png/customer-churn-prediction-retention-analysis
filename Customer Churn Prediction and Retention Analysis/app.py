@@ -1,13 +1,12 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
 import os
 
 
-# ==============================
-# PAGE CONFIG
-# ==============================
+# ===============================
+# PAGE SETTINGS
+# ===============================
 
 st.set_page_config(
     page_title="Customer Churn Prediction & Retention Analysis",
@@ -16,47 +15,29 @@ st.set_page_config(
 )
 
 
-# ==============================
+# ===============================
 # PATHS
-# ==============================
+# ===============================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "logistic_regression_model.pkl"
-)
-
-SCALER_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "scaler.pkl"
-)
-
-FEATURE_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "feature_columns.pkl"
-)
+MODEL_PATH = os.path.join(BASE_DIR,"models","logistic_regression_model.pkl")
+SCALER_PATH = os.path.join(BASE_DIR,"models","scaler.pkl")
+FEATURE_PATH = os.path.join(BASE_DIR,"models","feature_columns.pkl")
 
 
-
-# ==============================
-# LOAD MODEL
-# ==============================
+# ===============================
+# LOAD FILES
+# ===============================
 
 @st.cache_resource
 def load_files():
 
     model = joblib.load(MODEL_PATH)
-
     scaler = joblib.load(SCALER_PATH)
-
     features = joblib.load(FEATURE_PATH)
 
     return model, scaler, features
-
 
 
 try:
@@ -65,59 +46,41 @@ try:
 
 except Exception as e:
 
-    st.error("❌ Model loading failed")
+    st.error("Model files loading failed")
     st.write(e)
     st.stop()
 
 
 
-# ==============================
+# ===============================
 # TITLE
-# ==============================
+# ===============================
 
 st.title("📊 Customer Churn Prediction & Retention Analysis")
 
-
 st.write(
 """
-This AI system predicts customer churn risk and provides
-business recommendations to retain customers.
+AI powered system that predicts customer churn risk
+and generates personalized retention strategies.
 """
 )
 
 
 
-# ==============================
+# ===============================
 # INPUTS
-# ==============================
+# ===============================
+
+st.sidebar.header("Customer Details")
 
 
-st.sidebar.header("Customer Information")
+gender = st.sidebar.selectbox("Gender",["Male","Female"])
 
+senior = st.sidebar.selectbox("Senior Citizen",[0,1])
 
-gender = st.sidebar.selectbox(
-    "Gender",
-    ["Male","Female"]
-)
+partner = st.sidebar.selectbox("Partner",["Yes","No"])
 
-
-senior = st.sidebar.selectbox(
-    "Senior Citizen",
-    [0,1]
-)
-
-
-partner = st.sidebar.selectbox(
-    "Partner",
-    ["Yes","No"]
-)
-
-
-dependents = st.sidebar.selectbox(
-    "Dependents",
-    ["Yes","No"]
-)
-
+dependents = st.sidebar.selectbox("Dependents",["Yes","No"])
 
 tenure = st.sidebar.number_input(
     "Tenure Months",
@@ -125,111 +88,60 @@ tenure = st.sidebar.number_input(
     value=12
 )
 
-
 phone = st.sidebar.selectbox(
     "Phone Service",
     ["Yes","No"]
 )
 
-
-multiple_lines = st.sidebar.selectbox(
+multiple = st.sidebar.selectbox(
     "Multiple Lines",
-    [
-        "Yes",
-        "No",
-        "No phone service"
-    ]
+    ["Yes","No","No phone service"]
 )
-
 
 internet = st.sidebar.selectbox(
     "Internet Service",
-    [
-        "DSL",
-        "Fiber optic",
-        "No"
-    ]
+    ["DSL","Fiber optic","No"]
 )
-
 
 security = st.sidebar.selectbox(
     "Online Security",
-    [
-        "Yes",
-        "No",
-        "No internet service"
-    ]
+    ["Yes","No","No internet service"]
 )
-
 
 backup = st.sidebar.selectbox(
     "Online Backup",
-    [
-        "Yes",
-        "No",
-        "No internet service"
-    ]
+    ["Yes","No","No internet service"]
 )
-
 
 device = st.sidebar.selectbox(
     "Device Protection",
-    [
-        "Yes",
-        "No",
-        "No internet service"
-    ]
+    ["Yes","No","No internet service"]
 )
-
 
 support = st.sidebar.selectbox(
     "Tech Support",
-    [
-        "Yes",
-        "No",
-        "No internet service"
-    ]
+    ["Yes","No","No internet service"]
 )
-
 
 tv = st.sidebar.selectbox(
     "Streaming TV",
-    [
-        "Yes",
-        "No",
-        "No internet service"
-    ]
+    ["Yes","No","No internet service"]
 )
-
 
 movies = st.sidebar.selectbox(
     "Streaming Movies",
-    [
-        "Yes",
-        "No",
-        "No internet service"
-    ]
+    ["Yes","No","No internet service"]
 )
-
 
 contract = st.sidebar.selectbox(
     "Contract",
-    [
-        "Month-to-month",
-        "One year",
-        "Two year"
-    ]
+    ["Month-to-month","One year","Two year"]
 )
-
 
 paperless = st.sidebar.selectbox(
     "Paperless Billing",
-    [
-        "Yes",
-        "No"
-    ]
+    ["Yes","No"]
 )
-
 
 payment = st.sidebar.selectbox(
     "Payment Method",
@@ -241,29 +153,23 @@ payment = st.sidebar.selectbox(
     ]
 )
 
-
 monthly = st.sidebar.number_input(
     "Monthly Charges",
-    min_value=0.0,
     value=70.0
 )
 
-
 total = st.sidebar.number_input(
     "Total Charges",
-    min_value=0.0,
     value=1000.0
 )
 
 
 
-
-# ==============================
+# ===============================
 # PREDICTION
-# ==============================
+# ===============================
 
-
-if st.button("🔍 Predict Churn"):
+if st.button("🔍 Predict Customer Risk"):
 
 
     customer = pd.DataFrame({
@@ -274,7 +180,7 @@ if st.button("🔍 Predict Churn"):
         "Dependents":[dependents],
         "Tenure Months":[tenure],
         "Phone Service":[phone],
-        "Multiple Lines":[multiple_lines],
+        "Multiple Lines":[multiple],
         "Internet Service":[internet],
         "Online Security":[security],
         "Online Backup":[backup],
@@ -291,66 +197,50 @@ if st.button("🔍 Predict Churn"):
     })
 
 
-
-    # Encoding
-
-    customer_encoded = pd.get_dummies(customer)
+    encoded = pd.get_dummies(customer)
 
 
-
-    # Match training features
-
-    customer_encoded = customer_encoded.reindex(
+    encoded = encoded.reindex(
         columns=feature_columns,
         fill_value=0
     )
 
 
-
-    # Scaling fix
+    # scaler handling
 
     if hasattr(scaler,"transform"):
 
-        final_data = scaler.transform(
-            customer_encoded
-        )
+        final_input = scaler.transform(encoded)
 
     else:
 
-        final_data = customer_encoded.values
+        final_input = encoded.values
 
 
 
-    prediction = model.predict(
-        final_data
-    )
+    prediction = model.predict(final_input)
 
 
     probability = 0
 
-
     if hasattr(model,"predict_proba"):
 
-        probability = model.predict_proba(
-            final_data
-        )[0][1]
+        probability = model.predict_proba(final_input)[0][1]
 
 
 
-    # ==============================
-    # RESULTS
-    # ==============================
+    st.divider()
 
 
-    st.subheader("Prediction Result")
+    # ===============================
+    # RESULT
+    # ===============================
 
 
-    if prediction[0] == 1:
+    if prediction[0]==1:
 
 
-        st.error(
-            "⚠️ Customer is likely to churn"
-        )
+        st.error("⚠️ HIGH CHURN RISK CUSTOMER")
 
 
         st.metric(
@@ -359,76 +249,141 @@ if st.button("🔍 Predict Churn"):
         )
 
 
-        st.subheader(
-            "💡 Retention Recommendations"
-        )
+        st.subheader("💊 Customer Retention Prescription")
 
 
-        recommendations=[]
+        st.markdown("### 🔎 Risk Analysis")
 
+
+        risks=[]
 
 
         if contract=="Month-to-month":
 
-            recommendations.append(
-                "Offer yearly contract discounts to increase customer commitment."
+            risks.append(
+            "Customer uses month-to-month contract, showing low commitment."
             )
 
 
-        if tenure < 12:
+        if tenure<12:
 
-            recommendations.append(
-                "Provide onboarding support and first-year loyalty benefits."
+            risks.append(
+            "Customer is new and loyalty is not established."
             )
 
 
-        if monthly > 70:
+        if monthly>70:
 
-            recommendations.append(
-                "Provide personalized pricing offers because charges are high."
+            risks.append(
+            "High monthly charges may create pricing dissatisfaction."
             )
 
 
         if support=="No":
 
-            recommendations.append(
-                "Offer free technical support packages."
+            risks.append(
+            "No technical support increases service frustration."
             )
 
 
         if security=="No":
 
-            recommendations.append(
-                "Promote online security services."
+            risks.append(
+            "Missing security services reduces customer engagement."
             )
 
 
         if payment=="Electronic check":
 
-            recommendations.append(
-                "Encourage automatic payment methods with incentives."
+            risks.append(
+            "Electronic payment behaviour indicates higher churn tendency."
             )
 
 
-        if internet=="Fiber optic":
+        if len(risks)==0:
 
-            recommendations.append(
-                "Check service satisfaction and network issues."
+            risks.append(
+            "No major risk factor detected."
             )
 
 
+        for r in risks:
 
-        if len(recommendations)==0:
+            st.warning(r)
 
-            recommendations.append(
-                "Provide loyalty rewards and customer engagement offers."
+
+
+        st.markdown("### 🎯 Recommended Retention Actions")
+
+
+        actions=[]
+
+
+        if contract=="Month-to-month":
+
+            actions.append(
+            "Offer yearly contract upgrade with loyalty discount."
             )
 
 
-        for item in recommendations:
+        if monthly>70:
 
-            st.write(
-                "🔹 "+item
+            actions.append(
+            "Provide personalized pricing package."
+            )
+
+
+        if support=="No":
+
+            actions.append(
+            "Provide free technical support trial."
+            )
+
+
+        if tenure<12:
+
+            actions.append(
+            "Create onboarding and welcome reward program."
+            )
+
+
+        if payment=="Electronic check":
+
+            actions.append(
+            "Encourage automatic payment with incentives."
+            )
+
+
+        actions.append(
+        "Add customer to loyalty program and satisfaction monitoring."
+        )
+
+
+        for a in actions:
+
+            st.info(a)
+
+
+
+        st.markdown("### 🚨 Priority Level")
+
+
+        if probability>=0.75:
+
+            st.error(
+            "HIGH PRIORITY: Contact customer immediately with retention offer."
+            )
+
+        elif probability>=0.50:
+
+            st.warning(
+            "MEDIUM PRIORITY: Start engagement campaign."
+            )
+
+        else:
+
+            st.success(
+            "LOW PRIORITY: Continue normal relationship management."
             )
 
 
@@ -436,9 +391,7 @@ if st.button("🔍 Predict Churn"):
     else:
 
 
-        st.success(
-            "✅ Customer is likely to stay"
-        )
+        st.success("✅ LOW CHURN RISK CUSTOMER")
 
 
         st.metric(
@@ -447,16 +400,25 @@ if st.button("🔍 Predict Churn"):
         )
 
 
-        st.subheader(
-            "💡 Customer Engagement Suggestions"
-        )
+        st.subheader("💡 Customer Engagement Plan")
 
 
         st.write(
         """
-        🔹 Continue loyalty programs  
-        🔹 Offer premium upgrades  
-        🔹 Maintain customer satisfaction  
-        🔹 Encourage referrals
+        ✅ Continue loyalty benefits
+
+        ✅ Maintain service quality
+
+        ✅ Encourage upgrades
+
+        ✅ Collect feedback regularly
         """
         )
+
+
+
+st.divider()
+
+st.caption(
+"Customer Churn Prediction & Retention Analysis | Machine Learning + Business Recommendations"
+)

@@ -1,6 +1,6 @@
 
 
-# 📊 Customer Churn Prediction & Retention Analysis
+# 📊 Customer Churn Prediction and Retention Analysis
 
 ## 🚀 Project Overview
 

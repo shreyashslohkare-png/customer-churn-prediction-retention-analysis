@@ -1,11 +1,13 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
+import os
 
 
-# ---------------------------------------------------
+# -------------------------------
 # Page Configuration
-# ---------------------------------------------------
+# -------------------------------
 
 st.set_page_config(
     page_title="Customer Churn Prediction",
@@ -14,436 +16,283 @@ st.set_page_config(
 )
 
 
+# -------------------------------
+# Base Directory
+# -------------------------------
 
-# ---------------------------------------------------
-# Load Model
-# ---------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "models",
+    "logistic_regression_model.pkl"
+)
+
+SCALER_PATH = os.path.join(
+    BASE_DIR,
+    "models",
+    "scaler.pkl"
+)
+
+FEATURE_PATH = os.path.join(
+    BASE_DIR,
+    "models",
+    "feature_columns.pkl"
+)
+
+
+# -------------------------------
+# Load Model Files
+# -------------------------------
 
 @st.cache_resource
-def load_model():
+def load_files():
 
-    model = joblib.load(
-        "models/logistic_regression_model.pkl"
-    )
+    model = joblib.load(MODEL_PATH)
 
-    return model
+    scaler = joblib.load(SCALER_PATH)
 
+    feature_columns = joblib.load(FEATURE_PATH)
 
-
-model = load_model()
+    return model, scaler, feature_columns
 
 
+try:
+    model, scaler, feature_columns = load_files()
 
-# ---------------------------------------------------
+except Exception as e:
+    st.error("❌ Model files not found.")
+    st.write("Check your GitHub folder structure.")
+    st.write(e)
+    st.stop()
+
+
+
+# -------------------------------
 # Title
-# ---------------------------------------------------
+# -------------------------------
 
 st.title("📊 Customer Churn Prediction System")
 
 st.write(
-    "Predict whether a telecom customer is likely to churn."
-)
-
-st.divider()
-
-
-
-# ---------------------------------------------------
-# Input Section
-# ---------------------------------------------------
-
-st.header("📝 Customer Information")
-
-
-col1, col2 = st.columns(2)
-
-
-
-with col1:
-
-
-    gender = st.selectbox(
-        "Gender",
-        ["Female","Male"]
-    )
-
-
-    senior = st.selectbox(
-        "Senior Citizen",
-        ["No","Yes"]
-    )
-
-
-    partner = st.selectbox(
-        "Partner",
-        ["No","Yes"]
-    )
-
-
-    dependents = st.selectbox(
-        "Dependents",
-        ["No","Yes"]
-    )
-
-
-    tenure = st.number_input(
-        "Tenure Months",
-        min_value=0,
-        max_value=72,
-        value=12
-    )
-
-
-    monthly = st.number_input(
-        "Monthly Charges",
-        min_value=0.0,
-        max_value=200.0,
-        value=70.0
-    )
-
-
-    online_security = st.selectbox(
-        "Online Security",
-        ["No","Yes","No internet service"]
-    )
-
-
-    online_backup = st.selectbox(
-        "Online Backup",
-        ["No","Yes","No internet service"]
-    )
-
-
-    device_protection = st.selectbox(
-        "Device Protection",
-        ["No","Yes","No internet service"]
-    )
-
-
-
-with col2:
-
-
-    phone = st.selectbox(
-        "Phone Service",
-        ["No","Yes"]
-    )
-
-
-    multiple = st.selectbox(
-        "Multiple Lines",
-        [
-            "No",
-            "Yes",
-            "No phone service"
-        ]
-    )
-
-
-    internet = st.selectbox(
-        "Internet Service",
-        [
-            "DSL",
-            "Fiber optic",
-            "No"
-        ]
-    )
-
-
-    tech_support = st.selectbox(
-        "Tech Support",
-        [
-            "No",
-            "Yes",
-            "No internet service"
-        ]
-    )
-
-
-    streaming_tv = st.selectbox(
-        "Streaming TV",
-        [
-            "No",
-            "Yes",
-            "No internet service"
-        ]
-    )
-
-
-    streaming_movies = st.selectbox(
-        "Streaming Movies",
-        [
-            "No",
-            "Yes",
-            "No internet service"
-        ]
-    )
-
-
-    contract = st.selectbox(
-        "Contract",
-        [
-            "Month-to-month",
-            "One year",
-            "Two year"
-        ]
-    )
-
-
-    paperless = st.selectbox(
-        "Paperless Billing",
-        [
-            "No",
-            "Yes"
-        ]
-    )
-
-
-    payment = st.selectbox(
-        "Payment Method",
-        [
-            "Bank transfer (automatic)",
-            "Credit card (automatic)",
-            "Electronic check",
-            "Mailed check"
-        ]
-    )
-
-
-
-total = round(
-    tenure * monthly,
-    2
+    """
+    This application predicts whether a customer is likely to churn
+    based on customer details.
+    """
 )
 
 
+# -------------------------------
+# User Input
+# -------------------------------
 
-st.metric(
+
+st.sidebar.header("Customer Information")
+
+
+gender = st.sidebar.selectbox(
+    "Gender",
+    ["Male", "Female"]
+)
+
+
+senior = st.sidebar.selectbox(
+    "Senior Citizen",
+    [0,1]
+)
+
+
+partner = st.sidebar.selectbox(
+    "Partner",
+    ["Yes","No"]
+)
+
+
+dependents = st.sidebar.selectbox(
+    "Dependents",
+    ["Yes","No"]
+)
+
+
+tenure = st.sidebar.number_input(
+    "Tenure Months",
+    min_value=0,
+    max_value=100,
+    value=12
+)
+
+
+phone = st.sidebar.selectbox(
+    "Phone Service",
+    ["Yes","No"]
+)
+
+
+multiple_lines = st.sidebar.selectbox(
+    "Multiple Lines",
+    ["Yes","No","No phone service"]
+)
+
+
+internet = st.sidebar.selectbox(
+    "Internet Service",
+    ["DSL","Fiber optic","No"]
+)
+
+
+online_security = st.sidebar.selectbox(
+    "Online Security",
+    ["Yes","No","No internet service"]
+)
+
+
+online_backup = st.sidebar.selectbox(
+    "Online Backup",
+    ["Yes","No","No internet service"]
+)
+
+
+device = st.sidebar.selectbox(
+    "Device Protection",
+    ["Yes","No","No internet service"]
+)
+
+
+tech_support = st.sidebar.selectbox(
+    "Tech Support",
+    ["Yes","No","No internet service"]
+)
+
+
+stream_tv = st.sidebar.selectbox(
+    "Streaming TV",
+    ["Yes","No","No internet service"]
+)
+
+
+stream_movies = st.sidebar.selectbox(
+    "Streaming Movies",
+    ["Yes","No","No internet service"]
+)
+
+
+contract = st.sidebar.selectbox(
+    "Contract",
+    [
+        "Month-to-month",
+        "One year",
+        "Two year"
+    ]
+)
+
+
+paperless = st.sidebar.selectbox(
+    "Paperless Billing",
+    ["Yes","No"]
+)
+
+
+payment = st.sidebar.selectbox(
+    "Payment Method",
+    [
+        "Electronic check",
+        "Mailed check",
+        "Bank transfer (automatic)",
+        "Credit card (automatic)"
+    ]
+)
+
+
+monthly = st.sidebar.number_input(
+    "Monthly Charges",
+    min_value=0.0,
+    value=70.0
+)
+
+
+total = st.sidebar.number_input(
     "Total Charges",
-    f"${total}"
+    min_value=0.0,
+    value=1000.0
 )
 
 
 
-st.divider()
-
-
-
-predict = st.button(
-    "🔍 Predict Churn",
-    use_container_width=True
-)
-
-
-
-# ---------------------------------------------------
+# -------------------------------
 # Prediction
-# ---------------------------------------------------
-
-if predict:
+# -------------------------------
 
 
-    data = pd.DataFrame({
+if st.button("Predict Churn"):
+
+
+    input_data = pd.DataFrame({
 
         "Gender":[gender],
-
         "Senior Citizen":[senior],
-
         "Partner":[partner],
-
         "Dependents":[dependents],
-
         "Tenure Months":[tenure],
-
         "Phone Service":[phone],
-
-        "Multiple Lines":[multiple],
-
+        "Multiple Lines":[multiple_lines],
         "Internet Service":[internet],
-
         "Online Security":[online_security],
-
         "Online Backup":[online_backup],
-
-        "Device Protection":[device_protection],
-
+        "Device Protection":[device],
         "Tech Support":[tech_support],
-
-        "Streaming TV":[streaming_tv],
-
-        "Streaming Movies":[streaming_movies],
-
+        "Streaming TV":[stream_tv],
+        "Streaming Movies":[stream_movies],
         "Contract":[contract],
-
         "Paperless Billing":[paperless],
-
         "Payment Method":[payment],
-
         "Monthly Charges":[monthly],
-
         "Total Charges":[total]
 
     })
 
 
+    # One hot encoding
 
-    # -------------------------------
-    # One Hot Encoding
-    # -------------------------------
-
-    data = pd.get_dummies(data)
+    input_encoded = pd.get_dummies(input_data)
 
 
+    # Match training columns
 
-    # -------------------------------
-    # Match EXACT MODEL FEATURES
-    # -------------------------------
-
-    model_features = model.feature_names_in_
-
-
-    data = data.reindex(
-        columns=model_features,
+    input_encoded = input_encoded.reindex(
+        columns=feature_columns,
         fill_value=0
     )
 
 
+    # Scaling
 
-    # -------------------------------
-    # Debug Check
-    # -------------------------------
+    input_scaled = scaler.transform(
+        input_encoded
+    )
 
-    if list(data.columns) != list(model_features):
-
-        st.error(
-            "Feature mismatch detected"
-        )
-
-        st.write(
-            "Expected:"
-        )
-
-        st.write(model_features)
-
-
-        st.write(
-            "Received:"
-        )
-
-        st.write(data.columns)
-
-
-        st.stop()
-
-
-
-    # -------------------------------
-    # Prediction
-    # -------------------------------
 
     prediction = model.predict(
-        data
-    )[0]
+        input_scaled
+    )
 
 
     probability = model.predict_proba(
-        data
+        input_scaled
     )[0][1]
 
 
 
-    st.divider()
+    st.subheader("Prediction Result")
 
 
-    st.header(
-        "📌 Result"
-    )
-
-
-
-    if prediction == 1:
+    if prediction[0] == 1:
 
         st.error(
-            "⚠ Customer is likely to CHURN"
-        )
-
-
-    else:
-
-        st.success(
-            "✅ Customer is likely to STAY"
-        )
-
-
-
-    st.subheader(
-        "Churn Probability"
-    )
-
-
-    st.progress(
-        float(probability)
-    )
-
-
-    st.write(
-        f"{probability:.2%}"
-    )
-
-
-
-    if probability >= 0.8:
-
-        st.error(
-            "🔴 Very High Risk"
-        )
-
-    elif probability >= 0.6:
-
-        st.warning(
-            "🟠 High Risk"
-        )
-
-    elif probability >= 0.4:
-
-        st.info(
-            "🟡 Medium Risk"
+            f"⚠️ Customer likely to churn\n\nRisk Score: {probability:.2%}"
         )
 
     else:
 
         st.success(
-            "🟢 Low Risk"
-        )
-
-
-
-    st.divider()
-
-
-
-    st.subheader(
-        "💡 Retention Suggestions"
-    )
-
-
-    if prediction == 1:
-
-        st.write(
-            """
-            - Offer personalized discounts
-            - Encourage yearly contracts
-            - Provide loyalty rewards
-            - Improve customer support
-            """
-        )
-
-    else:
-
-        st.write(
-            """
-            - Maintain engagement
-            - Offer premium services
-            - Build customer loyalty
-            """
+            f"✅ Customer likely to stay\n\nChurn Probability: {probability:.2%}"
         )

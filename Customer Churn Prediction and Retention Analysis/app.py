@@ -4,20 +4,21 @@ import joblib
 import os
 
 
-# =====================================
-# PAGE CONFIGURATION
-# =====================================
+# ===============================
+# PAGE CONFIG
+# ===============================
 
 st.set_page_config(
-    page_title="Customer Churn Prediction & Retention Analysis",
+    page_title="Customer Churn Prediction",
     page_icon="📊",
     layout="wide"
 )
 
 
-# =====================================
-# LOAD MODEL FILES
-# =====================================
+
+# ===============================
+# LOAD MODEL
+# ===============================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,32 +29,23 @@ MODEL_PATH = os.path.join(
     "logistic_regression_model.pkl"
 )
 
-FEATURE_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "feature_columns.pkl"
-)
-
-
 
 @st.cache_resource
-def load_files():
+def load_model():
 
     model = joblib.load(MODEL_PATH)
 
-    feature_columns = joblib.load(FEATURE_PATH)
-
-    return model, feature_columns
+    return model
 
 
 
 try:
 
-    model, feature_columns = load_files()
+    model = load_model()
 
 except Exception as e:
 
-    st.error("Model files not found")
+    st.error("Model loading failed")
 
     st.write(e)
 
@@ -61,72 +53,77 @@ except Exception as e:
 
 
 
-# =====================================
+# ===============================
 # TITLE
-# =====================================
+# ===============================
+
 
 st.title(
     "📊 Customer Churn Prediction & Retention Analysis"
 )
 
+
 st.write(
 """
-Machine Learning system that predicts customer churn risk
-and generates personalized retention strategies.
+Predict customer churn probability and generate
+personalized retention strategies.
 """
 )
 
 
 
-# =====================================
-# CUSTOMER INPUTS
-# =====================================
+# ===============================
+# INPUTS
+# ===============================
 
 
 st.sidebar.header(
-    "Customer Information"
+    "Customer Details"
 )
 
 
-Gender = st.sidebar.selectbox(
+data = {}
+
+
+data["Gender"] = st.sidebar.selectbox(
     "Gender",
     ["Male","Female"]
 )
 
 
-Senior_Citizen = st.sidebar.selectbox(
+data["Senior Citizen"] = st.sidebar.selectbox(
     "Senior Citizen",
     [0,1]
 )
 
 
-Partner = st.sidebar.selectbox(
+data["Partner"] = st.sidebar.selectbox(
     "Partner",
     ["Yes","No"]
 )
 
 
-Dependents = st.sidebar.selectbox(
+data["Dependents"] = st.sidebar.selectbox(
     "Dependents",
     ["Yes","No"]
 )
 
 
-Tenure_Months = st.sidebar.number_input(
+data["Tenure Months"] = st.sidebar.number_input(
     "Tenure Months",
-    min_value=0,
-    max_value=100,
-    value=12
+    0,
+    100,
+    12
 )
 
 
-Phone_Service = st.sidebar.selectbox(
+data["Phone Service"] = st.sidebar.selectbox(
     "Phone Service",
     ["Yes","No"]
 )
 
 
-Multiple_Lines = st.sidebar.selectbox(
+data["Multiple Lines"] = st.sidebar.selectbox(
     "Multiple Lines",
     [
         "Yes",
@@ -136,7 +133,7 @@ Multiple_Lines = st.sidebar.selectbox(
 )
 
 
-Internet_Service = st.sidebar.selectbox(
+data["Internet Service"] = st.sidebar.selectbox(
     "Internet Service",
     [
         "DSL",
@@ -146,7 +143,7 @@ Internet_Service = st.sidebar.selectbox(
 )
 
 
-Online_Security = st.sidebar.selectbox(
+data["Online Security"] = st.sidebar.selectbox(
     "Online Security",
     [
         "Yes",
@@ -156,7 +153,7 @@ Online_Security = st.sidebar.selectbox(
 )
 
 
-Online_Backup = st.sidebar.selectbox(
+data["Online Backup"] = st.sidebar.selectbox(
     "Online Backup",
     [
         "Yes",
@@ -166,7 +163,7 @@ Online_Backup = st.sidebar.selectbox(
 )
 
 
-Device_Protection = st.sidebar.selectbox(
+data["Device Protection"] = st.sidebar.selectbox(
     "Device Protection",
     [
         "Yes",
@@ -176,7 +173,7 @@ Device_Protection = st.sidebar.selectbox(
 )
 
 
-Tech_Support = st.sidebar.selectbox(
+data["Tech Support"] = st.sidebar.selectbox(
     "Tech Support",
     [
         "Yes",
@@ -186,7 +183,7 @@ Tech_Support = st.sidebar.selectbox(
 )
 
 
-Streaming_TV = st.sidebar.selectbox(
+data["Streaming TV"] = st.sidebar.selectbox(
     "Streaming TV",
     [
         "Yes",
@@ -196,7 +193,7 @@ Streaming_TV = st.sidebar.selectbox(
 )
 
 
-Streaming_Movies = st.sidebar.selectbox(
+data["Streaming Movies"] = st.sidebar.selectbox(
     "Streaming Movies",
     [
         "Yes",
@@ -206,7 +203,7 @@ Streaming_Movies = st.sidebar.selectbox(
 )
 
 
-Contract = st.sidebar.selectbox(
+data["Contract"] = st.sidebar.selectbox(
     "Contract",
     [
         "Month-to-month",
@@ -216,7 +213,7 @@ Contract = st.sidebar.selectbox(
 )
 
 
-Paperless_Billing = st.sidebar.selectbox(
+data["Paperless Billing"] = st.sidebar.selectbox(
     "Paperless Billing",
     [
         "Yes",
@@ -225,7 +222,7 @@ Paperless_Billing = st.sidebar.selectbox(
 )
 
 
-Payment_Method = st.sidebar.selectbox(
+data["Payment Method"] = st.sidebar.selectbox(
     "Payment Method",
     [
         "Electronic check",
@@ -236,95 +233,46 @@ Payment_Method = st.sidebar.selectbox(
 )
 
 
-Monthly_Charges = st.sidebar.number_input(
+data["Monthly Charges"] = st.sidebar.number_input(
     "Monthly Charges",
     value=70.0
 )
 
 
-Total_Charges = st.sidebar.number_input(
+data["Total Charges"] = st.sidebar.number_input(
     "Total Charges",
     value=1000.0
 )
 
 
 
-# =====================================
+# ===============================
 # PREDICTION
-# =====================================
+# ===============================
 
 
-if st.button("🔍 Predict Churn"):
+if st.button("Predict Churn"):
 
 
-    input_data = pd.DataFrame({
-
-        "Gender":[Gender],
-
-        "Senior Citizen":[Senior_Citizen],
-
-        "Partner":[Partner],
-
-        "Dependents":[Dependents],
-
-        "Tenure Months":[Tenure_Months],
-
-        "Phone Service":[Phone_Service],
-
-        "Multiple Lines":[Multiple_Lines],
-
-        "Internet Service":[Internet_Service],
-
-        "Online Security":[Online_Security],
-
-        "Online Backup":[Online_Backup],
-
-        "Device Protection":[Device_Protection],
-
-        "Tech Support":[Tech_Support],
-
-        "Streaming TV":[Streaming_TV],
-
-        "Streaming Movies":[Streaming_Movies],
-
-        "Contract":[Contract],
-
-        "Paperless Billing":[Paperless_Billing],
-
-        "Payment Method":[Payment_Method],
-
-        "Monthly Charges":[Monthly_Charges],
-
-        "Total Charges":[Total_Charges]
-
-    })
+    input_df = pd.DataFrame([data])
 
 
-
-    # Same preprocessing as training
-
-    categorical_columns = input_data.select_dtypes(
-        include="object"
-    ).columns
-
-
-
+    # same encoding style
     input_encoded = pd.get_dummies(
-        input_data,
-        columns=categorical_columns,
+        input_df,
         drop_first=True,
         dtype=int
     )
 
 
+    # use model expected columns directly
+    expected_columns = model.feature_names_in_
 
-    # Match training columns
 
     input_encoded = input_encoded.reindex(
-        columns=feature_columns,
+        columns=expected_columns,
         fill_value=0
     )
-
 
 
     prediction = model.predict(
@@ -342,12 +290,7 @@ if st.button("🔍 Predict Churn"):
 
 
 
-    # =====================================
-    # RESULT
-    # =====================================
-
-
-    if prediction[0]==1:
+    if prediction[0] == 1:
 
 
         st.error(
@@ -363,111 +306,51 @@ if st.button("🔍 Predict Churn"):
 
 
         st.subheader(
-            "🔎 Risk Analysis"
-        )
-
-
-        risks=[]
-
-
-
-        if Contract=="Month-to-month":
-
-            risks.append(
-            "Customer has month-to-month contract with high switching possibility."
-            )
-
-
-        if Monthly_Charges>80:
-
-            risks.append(
-            "High monthly charges may create price dissatisfaction."
-            )
-
-
-        if Tenure_Months<12:
-
-            risks.append(
-            "Customer relationship is new and loyalty is weak."
-            )
-
-
-        if Tech_Support=="No":
-
-            risks.append(
-            "No technical support may increase frustration."
-            )
-
-
-        if Payment_Method=="Electronic check":
-
-            risks.append(
-            "Electronic check users show higher churn tendency."
-            )
-
-
-
-        for r in risks:
-
-            st.warning(r)
-
-
-
-        st.subheader(
             "💊 Retention Prescription"
         )
 
 
-        for r in risks:
+        recommendations=[]
 
 
-            if "contract" in r.lower():
+        if data["Contract"]=="Month-to-month":
 
-                st.info(
-                "Offer yearly contract upgrade with loyalty benefits."
-                )
-
-
-            elif "charges" in r.lower():
-
-                st.info(
-                "Provide personalized pricing plan or discount."
-                )
-
-
-            elif "support" in r.lower():
-
-                st.info(
-                "Offer free technical support package."
-                )
-
-
-            elif "relationship" in r.lower():
-
-                st.info(
-                "Start customer onboarding and engagement campaign."
-                )
-
-
-            elif "payment" in r.lower():
-
-                st.info(
-                "Encourage automatic payment methods."
-                )
-
-
-
-        if probability>=0.75:
-
-            st.error(
-            "🚨 HIGH PRIORITY: Contact customer immediately."
+            recommendations.append(
+            "Offer annual contract upgrade with loyalty discount."
             )
 
-        else:
 
-            st.warning(
-            "⚠️ MEDIUM PRIORITY: Add to retention campaign."
+        if data["Monthly Charges"]>80:
+
+            recommendations.append(
+            "Provide personalized pricing plan."
             )
+
+
+        if data["Tech Support"]=="No":
+
+            recommendations.append(
+            "Provide technical support benefits."
+            )
+
+
+        if data["Tenure Months"]<12:
+
+            recommendations.append(
+            "Run customer onboarding campaign."
+            )
+
+
+        if len(recommendations)==0:
+
+            recommendations.append(
+            "Start customer engagement campaign."
+            )
+
+
+        for r in recommendations:
+
+            st.info(r)
 
 
 
@@ -485,27 +368,20 @@ if st.button("🔍 Predict Churn"):
         )
 
 
-        st.subheader(
-            "💡 Customer Engagement Strategy"
-        )
-
-
         st.write(
         """
+        Retention Strategy:
+
         ✅ Maintain service quality
 
-        ✅ Offer loyalty rewards
+        ✅ Provide loyalty benefits
 
-        ✅ Encourage premium services
-
-        ✅ Collect customer feedback
+        ✅ Encourage upgrades
         """
         )
 
 
 
-st.divider()
-
 st.caption(
-"Customer Churn Prediction & Retention Analysis | Machine Learning Project"
+"Customer Churn Prediction & Retention Analysis"
 )

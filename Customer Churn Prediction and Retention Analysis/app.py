@@ -5,9 +5,9 @@ import joblib
 import os
 
 
-# -------------------------------
-# Page Configuration
-# -------------------------------
+# ===============================
+# PAGE CONFIGURATION
+# ===============================
 
 st.set_page_config(
     page_title="Customer Churn Prediction",
@@ -16,9 +16,9 @@ st.set_page_config(
 )
 
 
-# -------------------------------
-# Base Directory
-# -------------------------------
+# ===============================
+# FILE PATHS
+# ===============================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,9 +41,10 @@ FEATURE_PATH = os.path.join(
 )
 
 
-# -------------------------------
-# Load Model Files
-# -------------------------------
+
+# ===============================
+# LOAD FILES
+# ===============================
 
 @st.cache_resource
 def load_files():
@@ -52,131 +53,164 @@ def load_files():
 
     scaler = joblib.load(SCALER_PATH)
 
-    feature_columns = joblib.load(FEATURE_PATH)
+    features = joblib.load(FEATURE_PATH)
 
-    return model, scaler, feature_columns
+    return model, scaler, features
+
 
 
 try:
+
     model, scaler, feature_columns = load_files()
 
 except Exception as e:
-    st.error("❌ Model files not found.")
-    st.write("Check your GitHub folder structure.")
+
+    st.error("Model loading failed")
     st.write(e)
     st.stop()
 
 
 
-# -------------------------------
-# Title
-# -------------------------------
+# ===============================
+# TITLE
+# ===============================
 
 st.title("📊 Customer Churn Prediction System")
 
 st.write(
-    """
-    This application predicts whether a customer is likely to churn
-    based on customer details.
-    """
+"""
+Predict whether a telecom customer is likely to churn.
+"""
 )
 
 
-# -------------------------------
-# User Input
-# -------------------------------
+
+# ===============================
+# INPUT SECTION
+# ===============================
+
+st.sidebar.header("Customer Details")
 
 
-st.sidebar.header("Customer Information")
 
-
-gender = st.sidebar.selectbox(
+Gender = st.sidebar.selectbox(
     "Gender",
-    ["Male", "Female"]
+    ["Male","Female"]
 )
 
 
-senior = st.sidebar.selectbox(
+SeniorCitizen = st.sidebar.selectbox(
     "Senior Citizen",
     [0,1]
 )
 
 
-partner = st.sidebar.selectbox(
+Partner = st.sidebar.selectbox(
     "Partner",
     ["Yes","No"]
 )
 
 
-dependents = st.sidebar.selectbox(
+Dependents = st.sidebar.selectbox(
     "Dependents",
     ["Yes","No"]
 )
 
 
-tenure = st.sidebar.number_input(
+Tenure = st.sidebar.number_input(
     "Tenure Months",
     min_value=0,
-    max_value=100,
     value=12
 )
 
 
-phone = st.sidebar.selectbox(
+PhoneService = st.sidebar.selectbox(
     "Phone Service",
     ["Yes","No"]
 )
 
 
-multiple_lines = st.sidebar.selectbox(
+MultipleLines = st.sidebar.selectbox(
     "Multiple Lines",
-    ["Yes","No","No phone service"]
+    [
+        "Yes",
+        "No",
+        "No phone service"
+    ]
 )
 
 
-internet = st.sidebar.selectbox(
+InternetService = st.sidebar.selectbox(
     "Internet Service",
-    ["DSL","Fiber optic","No"]
+    [
+        "DSL",
+        "Fiber optic",
+        "No"
+    ]
 )
 
 
-online_security = st.sidebar.selectbox(
+OnlineSecurity = st.sidebar.selectbox(
     "Online Security",
-    ["Yes","No","No internet service"]
+    [
+        "Yes",
+        "No",
+        "No internet service"
+    ]
 )
 
 
-online_backup = st.sidebar.selectbox(
+OnlineBackup = st.sidebar.selectbox(
     "Online Backup",
-    ["Yes","No","No internet service"]
+    [
+        "Yes",
+        "No",
+        "No internet service"
+    ]
 )
 
 
-device = st.sidebar.selectbox(
+DeviceProtection = st.sidebar.selectbox(
     "Device Protection",
-    ["Yes","No","No internet service"]
+    [
+        "Yes",
+        "No",
+        "No internet service"
+    ]
 )
 
 
-tech_support = st.sidebar.selectbox(
+TechSupport = st.sidebar.selectbox(
     "Tech Support",
-    ["Yes","No","No internet service"]
+    [
+        "Yes",
+        "No",
+        "No internet service"
+    ]
 )
 
 
-stream_tv = st.sidebar.selectbox(
+StreamingTV = st.sidebar.selectbox(
     "Streaming TV",
-    ["Yes","No","No internet service"]
+    [
+        "Yes",
+        "No",
+        "No internet service"
+    ]
 )
 
 
-stream_movies = st.sidebar.selectbox(
+StreamingMovies = st.sidebar.selectbox(
     "Streaming Movies",
-    ["Yes","No","No internet service"]
+    [
+        "Yes",
+        "No",
+        "No internet service"
+    ]
 )
 
 
-contract = st.sidebar.selectbox(
+Contract = st.sidebar.selectbox(
     "Contract",
     [
         "Month-to-month",
@@ -186,13 +220,16 @@ contract = st.sidebar.selectbox(
 )
 
 
-paperless = st.sidebar.selectbox(
+PaperlessBilling = st.sidebar.selectbox(
     "Paperless Billing",
-    ["Yes","No"]
+    [
+        "Yes",
+        "No"
+    ]
 )
 
 
-payment = st.sidebar.selectbox(
+PaymentMethod = st.sidebar.selectbox(
     "Payment Method",
     [
         "Electronic check",
@@ -203,14 +240,14 @@ payment = st.sidebar.selectbox(
 )
 
 
-monthly = st.sidebar.number_input(
+MonthlyCharges = st.sidebar.number_input(
     "Monthly Charges",
     min_value=0.0,
     value=70.0
 )
 
 
-total = st.sidebar.number_input(
+TotalCharges = st.sidebar.number_input(
     "Total Charges",
     min_value=0.0,
     value=1000.0
@@ -218,42 +255,46 @@ total = st.sidebar.number_input(
 
 
 
-# -------------------------------
-# Prediction
-# -------------------------------
+# ===============================
+# PREDICTION
+# ===============================
 
 
 if st.button("Predict Churn"):
 
 
-    input_data = pd.DataFrame({
+    data = {
 
-        "Gender":[gender],
-        "Senior Citizen":[senior],
-        "Partner":[partner],
-        "Dependents":[dependents],
-        "Tenure Months":[tenure],
-        "Phone Service":[phone],
-        "Multiple Lines":[multiple_lines],
-        "Internet Service":[internet],
-        "Online Security":[online_security],
-        "Online Backup":[online_backup],
-        "Device Protection":[device],
-        "Tech Support":[tech_support],
-        "Streaming TV":[stream_tv],
-        "Streaming Movies":[stream_movies],
-        "Contract":[contract],
-        "Paperless Billing":[paperless],
-        "Payment Method":[payment],
-        "Monthly Charges":[monthly],
-        "Total Charges":[total]
+        "Gender":Gender,
+        "Senior Citizen":SeniorCitizen,
+        "Partner":Partner,
+        "Dependents":Dependents,
+        "Tenure Months":Tenure,
+        "Phone Service":PhoneService,
+        "Multiple Lines":MultipleLines,
+        "Internet Service":InternetService,
+        "Online Security":OnlineSecurity,
+        "Online Backup":OnlineBackup,
+        "Device Protection":DeviceProtection,
+        "Tech Support":TechSupport,
+        "Streaming TV":StreamingTV,
+        "Streaming Movies":StreamingMovies,
+        "Contract":Contract,
+        "Paperless Billing":PaperlessBilling,
+        "Payment Method":PaymentMethod,
+        "Monthly Charges":MonthlyCharges,
+        "Total Charges":TotalCharges
 
-    })
+    }
 
 
-    # One hot encoding
+    input_df = pd.DataFrame([data])
 
-    input_encoded = pd.get_dummies(input_data)
+
+    # Encoding
+
+    input_encoded = pd.get_dummies(input_df)
+
 
 
     # Match training columns
@@ -264,35 +305,64 @@ if st.button("Predict Churn"):
     )
 
 
-    # Scaling
 
-    input_scaled = scaler.transform(
-        input_encoded
-    )
+    # ===============================
+    # SCALER HANDLING
+    # ===============================
 
+    if hasattr(scaler,"transform"):
 
-    prediction = model.predict(
-        input_scaled
-    )
-
-
-    probability = model.predict_proba(
-        input_scaled
-    )[0][1]
-
-
-
-    st.subheader("Prediction Result")
-
-
-    if prediction[0] == 1:
-
-        st.error(
-            f"⚠️ Customer likely to churn\n\nRisk Score: {probability:.2%}"
+        final_input = scaler.transform(
+            input_encoded
         )
 
     else:
 
+        final_input = input_encoded.values
+
+
+
+    # Prediction
+
+    prediction = model.predict(
+        final_input
+    )
+
+
+    probability = None
+
+
+    if hasattr(model,"predict_proba"):
+
+        probability = model.predict_proba(
+            final_input
+        )[0][1]
+
+
+
+    st.subheader("Prediction")
+
+
+
+    if prediction[0] == 1:
+
+        st.error("⚠️ Customer is likely to churn")
+
+        if probability:
+
+            st.write(
+                f"Churn Probability: {probability:.2%}"
+            )
+
+
+    else:
+
         st.success(
-            f"✅ Customer likely to stay\n\nChurn Probability: {probability:.2%}"
+            "✅ Customer is likely to stay"
         )
+
+        if probability:
+
+            st.write(
+                f"Churn Probability: {probability:.2%}"
+            )
